@@ -234,13 +234,30 @@ function generateDice() {
             const dieHTML = `
                 <div class="die-wrapper">
                     <div class="die-title">Die ${index + 1}</div>
-                    <div class="die">
-                        <div class="die-face front">${die.front || '-'}</div>
-                        <div class="die-face back">${die.back || '-'}</div>
-                        <div class="die-face top">${die.top || '-'}</div>
-                        <div class="die-face bottom">${die.bottom || '-'}</div>
-                        <div class="die-face left">${die.left || '-'}</div>
-                        <div class="die-face right">${die.right || '-'}</div>
+                    <div class="die-layout">
+                        <div class="die-face top">
+                            <span class="die-face-label">TOP</span>
+                            ${die.top || '-'}
+                        </div>
+                        <div class="die-face left">
+                            <span class="die-face-label">LEFT</span>
+                            ${die.left || '-'}
+                        </div>
+                        <div class="die-face front">
+                            <span class="die-face-label">FRONT</span>
+                            ${die.front || '-'}
+                        </div>
+                        <div class="die-face right">
+                            <span class="die-face-label">RIGHT</span>
+                            ${die.right || '-'}
+                        </div>
+                        <div class="die-face bottom">
+                            <span class="die-face-label">BOTTOM</span>
+                            ${die.bottom || '-'}
+                        </div>
+                    </div>
+                    <div class="opposite-faces">
+                        <strong>Back:</strong> ${die.back || '-'}
                     </div>
                 </div>
             `;
