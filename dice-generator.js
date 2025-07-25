@@ -312,8 +312,8 @@ function generateDice() {
         // Update summary
         const summaryText = document.getElementById('summaryText');
         summaryText.innerHTML = `
-            <strong>Word:</strong> ${config.targetWord}<br>
-            <strong>Number of dice needed:</strong> ${config.dice.length}
+            <strong>Word:</strong> ${config.targetWord} • 
+            <strong>Dice needed:</strong> ${config.dice.length}
         `;
         
         // Update letter distribution
@@ -325,7 +325,7 @@ function generateDice() {
             letterDistDiv.innerHTML += `
                 <div class="letter-stat">
                     <strong>${letter}</strong>
-                    <span>${letterDistribution[letter]} face${letterDistribution[letter] > 1 ? 's' : ''}</span>
+                    <span>${letterDistribution[letter]}</span>
                 </div>
             `;
         }
