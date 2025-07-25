@@ -318,18 +318,15 @@ function generateDice() {
         
         // Update letter distribution
         const letterDistDiv = document.getElementById('letterDistribution');
-        letterDistDiv.innerHTML = '<h4>Letter Distribution:</h4><div class="letter-grid">';
+        let gridHtml = '<h4>Letter Distribution:</h4><div class="letter-grid">';
         
         const sortedLetters = Object.keys(letterDistribution).sort();
         for (const letter of sortedLetters) {
-            letterDistDiv.innerHTML += `
-                <div class="letter-stat">
-                    <strong>${letter}</strong>
-                    <span>${letterDistribution[letter]}</span>
-                </div>
-            `;
+            gridHtml += `<div class="letter-stat"><strong>${letter}</strong><span>${letterDistribution[letter]}</span></div>`;
         }
-        letterDistDiv.innerHTML += '</div>';
+        gridHtml += '</div>';
+        
+        letterDistDiv.innerHTML = gridHtml;
         
         // Generate dice HTML
         const diceContainer = document.getElementById('diceContainer');
