@@ -386,6 +386,10 @@ function generateDice() {
         relatedWordsDiv.innerHTML = '';
         
         if (relatedWords.length > 0) {
+            // Create word list container
+            relatedWordsDiv.innerHTML = '<div class="word-list">';
+            const wordListDiv = relatedWordsDiv.querySelector('.word-list');
+            
             // Group words by length
             const wordsByLength = {};
             relatedWords.forEach(word => {
@@ -400,9 +404,12 @@ function generateDice() {
                     const wordsHtml = wordsByLength[length].map(word => 
                         `<span class="word-tag">${word}</span>`
                     ).join('');
-                    relatedWordsDiv.innerHTML += wordsHtml;
+                    wordListDiv.innerHTML += wordsHtml;
                 }
             });
+            
+            // Close word list and add statistics separately
+            relatedWordsDiv.innerHTML += '</div>';
             
             // Add statistics
             const totalWords = relatedWords.length;
