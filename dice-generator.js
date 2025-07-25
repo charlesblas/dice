@@ -234,30 +234,41 @@ function generateDice() {
             const dieHTML = `
                 <div class="die-wrapper">
                     <div class="die-title">Die ${index + 1}</div>
-                    <div class="die-layout">
-                        <div class="die-face top">
-                            <span class="die-face-label">TOP</span>
-                            ${die.top || '-'}
+                    <div class="die-container" data-die-index="${index}">
+                        <div class="die-layout">
+                            <div class="die-face back">
+                                <span class="die-face-label">BACK</span>
+                                ${die.back || '-'}
+                            </div>
+                            <div class="die-face top">
+                                <span class="die-face-label">TOP</span>
+                                ${die.top || '-'}
+                            </div>
+                            <div class="die-face left">
+                                <span class="die-face-label">LEFT</span>
+                                ${die.left || '-'}
+                            </div>
+                            <div class="die-face front">
+                                <span class="die-face-label">FRONT</span>
+                                ${die.front || '-'}
+                            </div>
+                            <div class="die-face right">
+                                <span class="die-face-label">RIGHT</span>
+                                ${die.right || '-'}
+                            </div>
+                            <div class="die-face bottom">
+                                <span class="die-face-label">BOTTOM</span>
+                                ${die.bottom || '-'}
+                            </div>
                         </div>
-                        <div class="die-face left">
-                            <span class="die-face-label">LEFT</span>
-                            ${die.left || '-'}
+                        <div class="die-3d">
+                            <div class="die-face front">${die.front || '-'}</div>
+                            <div class="die-face back">${die.back || '-'}</div>
+                            <div class="die-face top">${die.top || '-'}</div>
+                            <div class="die-face bottom">${die.bottom || '-'}</div>
+                            <div class="die-face left">${die.left || '-'}</div>
+                            <div class="die-face right">${die.right || '-'}</div>
                         </div>
-                        <div class="die-face front">
-                            <span class="die-face-label">FRONT</span>
-                            ${die.front || '-'}
-                        </div>
-                        <div class="die-face right">
-                            <span class="die-face-label">RIGHT</span>
-                            ${die.right || '-'}
-                        </div>
-                        <div class="die-face bottom">
-                            <span class="die-face-label">BOTTOM</span>
-                            ${die.bottom || '-'}
-                        </div>
-                    </div>
-                    <div class="opposite-faces">
-                        <strong>Back:</strong> ${die.back || '-'}
                     </div>
                 </div>
             `;
@@ -280,6 +291,30 @@ function generateDice() {
         // Hide loading and show results
         document.getElementById('loading').style.display = 'none';
         document.getElementById('results').style.display = 'block';
+        
+        // Add mouse movement tracking for 3D dice
+        setTimeout(() => {
+            const dieContainers = document.querySelectorAll('.die-container');
+            dieContainers.forEach(container => {
+                const die3d = container.querySelector('.die-3d');
+                
+                container.addEventListener('mousemove', (e) => {
+                    const rect = container.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // Calculate rotation based on mouse position
+                    const rotateY = ((x / rect.width) - 0.5) * 60;
+                    const rotateX = ((y / rect.height) - 0.5) * -60;
+                    
+                    die3d.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+                
+                container.addEventListener('mouseleave', () => {
+                    die3d.style.transform = 'rotateX(-20deg) rotateY(30deg)';
+                });
+            });
+        }, 100);
     }, 300);
 }
 
