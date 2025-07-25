@@ -303,9 +303,9 @@ function generateDice() {
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
                     
-                    // Calculate rotation based on mouse position
-                    const rotateY = ((x / rect.width) - 0.5) * 60;
-                    const rotateX = ((y / rect.height) - 0.5) * -60;
+                    // Calculate rotation based on mouse position (increased sensitivity)
+                    const rotateY = ((x / rect.width) - 0.5) * 180;
+                    const rotateX = ((y / rect.height) - 0.5) * -180;
                     
                     die3d.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
                 });
