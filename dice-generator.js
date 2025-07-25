@@ -324,7 +324,8 @@ function generateDice() {
         for (const letter of sortedLetters) {
             letterDistDiv.innerHTML += `
                 <div class="letter-stat">
-                    ${letter}: ${letterDistribution[letter]}
+                    <strong>${letter}</strong>
+                    <span>${letterDistribution[letter]} face${letterDistribution[letter] > 1 ? 's' : ''}</span>
                 </div>
             `;
         }

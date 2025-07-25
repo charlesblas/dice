@@ -262,17 +262,30 @@
 
         .letter-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-            gap: 0.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.3rem;
             margin: 1rem 0;
         }
 
         .letter-stat {
             background: var(--background-color);
-            padding: 0.5rem;
-            text-align: center;
+            padding: 0.3rem 0.5rem;
+            text-align: left;
             border-radius: 5px;
+            font-weight: normal;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .letter-stat strong {
             font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .letter-stat span {
+            color: #666;
         }
 
         .related-words {
