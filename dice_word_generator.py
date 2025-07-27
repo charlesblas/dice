@@ -55,10 +55,12 @@ COMMON_WORDS = [
 
 
 class DiceConfiguration:
-    def __init__(self, target_word):
+    def __init__(self, target_word, wishlist_words=None):
         self.target_word = target_word.upper().replace(' ', '')
+        self.wishlist_words = [w.upper().replace(' ', '') for w in (wishlist_words or [])]
         self.letters_needed = Counter(self.target_word)
         self.dice = []
+        self.wishlist_accommodation = {}
         
     def calculate_dice_count(self):
         """Calculate minimum number of dice needed"""
@@ -90,6 +92,13 @@ class DiceConfiguration:
         
         # Track global letter usage to ensure diversity
         global_letter_count = Counter()
+        
+        # Calculate letter needs for wishlist words
+        wishlist_letter_needs = {}
+        for word in self.wishlist_words:
+            word_letters = Counter(word)
+            for letter, count in word_letters.items():
+                wishlist_letter_needs[letter] = max(wishlist_letter_needs.get(letter, 0), count)
         
         # Create a sorted list of all letters by frequency
         all_letters = sorted(LETTER_FREQUENCIES.keys(), 
@@ -138,7 +147,15 @@ class DiceConfiguration:
                     freq_score = LETTER_FREQUENCIES[letter]
                     # Penalize overused letters (aim for max 3-4 uses across all dice)
                     usage_penalty = global_letter_count[letter] * 2
-                    score = freq_score - usage_penalty
+                    
+                    # Moderate boost for wishlist letters, but don't overwhelm frequency-based selection
+                    wishlist_bonus = 5 if letter in wishlist_letter_needs else 0
+                    current_wishlist_coverage = global_letter_count[letter]
+                    wishlist_need = wishlist_letter_needs.get(letter, 0) - current_wishlist_coverage
+                    # Smaller multiplier to avoid monopolizing (cap at 10)
+                    wishlist_multiplier = min(wishlist_need * 3, 10) if wishlist_need > 0 else 0
+                    
+                    score = freq_score - usage_penalty + wishlist_bonus + wishlist_multiplier
                     
                     if score > best_score:
                         best_score = score
@@ -159,27 +176,51 @@ class DiceConfiguration:
                     else:
                         die[face] = '*'  # Wildcard as last resort
         
+        # Check wishlist word accommodation after generation
+        self.check_wishlist_accommodation()
+    
+    def check_wishlist_accommodation(self):
+        """Check which wishlist words can be spelled with the generated dice"""
+        self.wishlist_accommodation = {}
+        for word in self.wishlist_words:
+            self.wishlist_accommodation[word] = self.can_spell_word(word)
     
     def can_spell_word(self, word):
         """Check if a word can be spelled with the current dice configuration"""
         word = word.upper()
         
-        # We need to check if we can select one face from each die to spell the word
-        # This is more complex since each die can only show one face at a time
+        # Check if we have enough dice
         if len(word) > len(self.dice):
             return False
-            
-        # For simplicity, check if all letters exist somewhere on the dice
-        all_letters = set()
-        for die in self.dice:
-            for face in die.values():
-                if face and face != '*':
-                    all_letters.add(face)
         
-        for letter in word:
-            if letter not in all_letters:
-                return False
-        return True
+        # We need to check if we can assign one die to each letter position
+        # This is a bipartite matching problem - we'll use backtracking
+        word_letters = list(word)
+        used_dice = set()
+        
+        def can_match(letter_index):
+            if letter_index == len(word_letters):
+                return True  # All letters matched
+            
+            needed_letter = word_letters[letter_index]
+            
+            for die_index in range(len(self.dice)):
+                if die_index in used_dice:
+                    continue
+                
+                die = self.dice[die_index]
+                # Check if this die has the needed letter on any face
+                has_letter = any(face == needed_letter for face in die.values())
+                
+                if has_letter:
+                    used_dice.add(die_index)
+                    if can_match(letter_index + 1):
+                        return True
+                    used_dice.remove(die_index)
+            
+            return False
+        
+        return can_match(0)
     
     def find_related_words(self):
         """Find other words that can be spelled with these dice"""
@@ -223,6 +264,14 @@ class DiceConfiguration:
         for letter in sorted(all_letters.keys()):
             print(f"  {letter}: {all_letters[letter]} faces")
         
+        # Show wishlist results
+        if self.wishlist_words:
+            print(f"\nWishlist words:")
+            for word in self.wishlist_words:
+                can_spell = self.wishlist_accommodation.get(word, False)
+                status = "✓" if can_spell else "✗"
+                print(f"  {status} {word.lower()}")
+        
         # Show related words
         related = self.find_related_words()
         if related:
@@ -239,6 +288,7 @@ class DiceConfiguration:
 def main():
     parser = argparse.ArgumentParser(description='Generate optimal dice configuration for spelling words')
     parser.add_argument('word', help='The word or phrase to spell')
+    parser.add_argument('-w', '--wishlist', nargs='*', help='Optional wishlist words to try to accommodate (max 5)')
     
     args = parser.parse_args()
     
@@ -246,7 +296,10 @@ def main():
         print("Please provide a word or phrase to spell")
         sys.exit(1)
     
-    config = DiceConfiguration(args.word)
+    # Limit wishlist to 5 words
+    wishlist_words = args.wishlist[:5] if args.wishlist else []
+    
+    config = DiceConfiguration(args.word, wishlist_words)
     config.generate_dice()
     config.display_configuration()
 

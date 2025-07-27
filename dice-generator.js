@@ -144,10 +144,12 @@ const COMMON_WORDS = [
 ];
 
 class DiceConfiguration {
-    constructor(targetWord) {
+    constructor(targetWord, wishlistWords = []) {
         this.targetWord = targetWord.toUpperCase().replace(/\s/g, '');
+        this.wishlistWords = wishlistWords.map(w => w.toUpperCase().replace(/\s/g, ''));
         this.lettersNeeded = this.countLetters(this.targetWord);
         this.dice = [];
+        this.wishlistAccommodation = {};
     }
 
     countLetters(word) {
@@ -194,6 +196,15 @@ class DiceConfiguration {
         // Track global letter usage to ensure diversity
         const globalLetterCount = {};
         
+        // Calculate letter needs for wishlist words
+        const wishlistLetterNeeds = {};
+        for (const word of this.wishlistWords) {
+            const letters = this.countLetters(word);
+            for (const [letter, count] of Object.entries(letters)) {
+                wishlistLetterNeeds[letter] = Math.max(wishlistLetterNeeds[letter] || 0, count);
+            }
+        }
+        
         // Create a sorted list of all letters by frequency
         const allLetters = Object.keys(LETTER_FREQUENCIES).sort(
             (a, b) => LETTER_FREQUENCIES[b] - LETTER_FREQUENCIES[a]
@@ -237,7 +248,15 @@ class DiceConfiguration {
                     // Calculate score based on frequency and current usage
                     const freqScore = LETTER_FREQUENCIES[letter];
                     const usagePenalty = (globalLetterCount[letter] || 0) * 2;
-                    const score = freqScore - usagePenalty;
+                    
+                    // Moderate boost for wishlist letters, but don't overwhelm frequency-based selection
+                    const wishlistBonus = wishlistLetterNeeds[letter] ? 5 : 0;
+                    const currentWishlistCoverage = globalLetterCount[letter] || 0;
+                    const wishlistNeed = (wishlistLetterNeeds[letter] || 0) - currentWishlistCoverage;
+                    // Smaller multiplier to avoid monopolizing
+                    const wishlistMultiplier = wishlistNeed > 0 ? Math.min(wishlistNeed * 3, 10) : 0;
+                    
+                    const score = freqScore - usagePenalty + wishlistBonus + wishlistMultiplier;
                     
                     if (score > bestScore) {
                         bestScore = score;
@@ -264,7 +283,17 @@ class DiceConfiguration {
             }
         }
         
+        // Check wishlist word accommodation
+        this.checkWishlistAccommodation();
+        
         return globalLetterCount;
+    }
+    
+    checkWishlistAccommodation() {
+        this.wishlistAccommodation = {};
+        for (const word of this.wishlistWords) {
+            this.wishlistAccommodation[word] = this.canSpellWord(word);
+        }
     }
 
     canSpellWord(word) {
@@ -275,22 +304,46 @@ class DiceConfiguration {
             return false;
         }
         
-        // For simplicity, check if all letters exist somewhere on the dice
-        const allLetters = new Set();
-        for (const die of this.dice) {
-            for (const face of Object.values(die)) {
-                if (face && face !== '*') {
-                    allLetters.add(face);
+        // We need to check if we can assign one die to each letter position
+        // This is a bipartite matching problem
+        const wordLetters = word.split('');
+        
+        // Try to find a valid assignment using backtracking
+        const usedDice = new Set();
+        
+        function canMatch(letterIndex) {
+            if (letterIndex === wordLetters.length) {
+                return true; // All letters matched
+            }
+            
+            const neededLetter = wordLetters[letterIndex];
+            
+            for (let dieIndex = 0; dieIndex < this.dice.length; dieIndex++) {
+                if (usedDice.has(dieIndex)) continue;
+                
+                const die = this.dice[dieIndex];
+                // Check if this die has the needed letter on any face
+                let hasLetter = false;
+                for (const face of Object.values(die)) {
+                    if (face === neededLetter) {
+                        hasLetter = true;
+                        break;
+                    }
+                }
+                
+                if (hasLetter) {
+                    usedDice.add(dieIndex);
+                    if (canMatch.call(this, letterIndex + 1)) {
+                        return true;
+                    }
+                    usedDice.delete(dieIndex);
                 }
             }
+            
+            return false;
         }
         
-        for (const letter of word) {
-            if (!allLetters.has(letter)) {
-                return false;
-            }
-        }
-        return true;
+        return canMatch.call(this, 0);
     }
 
     findRelatedWords() {
@@ -331,7 +384,10 @@ function generateDice() {
     
     // Simulate processing time for better UX
     setTimeout(() => {
-        const config = new DiceConfiguration(word);
+        // Get wishlist words
+        const wishlistWords = getWishlistWords();
+        
+        const config = new DiceConfiguration(word, wishlistWords);
         const letterDistribution = config.generateDice();
         
         // Update summary
@@ -445,6 +501,31 @@ function generateDice() {
             `;
         } else {
             relatedWordsDiv.innerHTML = '<p style="color: #666;">No related words found</p>';
+        }
+        
+        // Display wishlist results
+        if (wishlistWords.length > 0) {
+            const wishlistResultsDiv = document.getElementById('wishlistResults');
+            const wishlistResultsContent = document.getElementById('wishlistResultsContent');
+            
+            wishlistResultsContent.innerHTML = '';
+            
+            for (const word of wishlistWords) {
+                const canSpell = config.wishlistAccommodation[word.toUpperCase()];
+                const resultClass = canSpell ? 'success' : 'failure';
+                const icon = canSpell ? '✓' : '✗';
+                
+                wishlistResultsContent.innerHTML += `
+                    <span class="wishlist-result ${resultClass}">
+                        <span class="icon">${icon}</span>
+                        ${word}
+                    </span>
+                `;
+            }
+            
+            wishlistResultsDiv.style.display = 'block';
+        } else {
+            document.getElementById('wishlistResults').style.display = 'none';
         }
         
         // Find and display biblical words

@@ -361,6 +361,103 @@
             font-weight: 600;
         }
 
+        .wishlist-section {
+            margin-top: 1rem;
+        }
+
+        .wishlist-item {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+
+        .wishlist-input {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+        }
+
+        .wishlist-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .add-wishlist-btn, .remove-wishlist-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-wishlist-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .add-wishlist-btn:hover {
+            background: #229954;
+        }
+
+        .remove-wishlist-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .remove-wishlist-btn:hover {
+            background: #c0392b;
+        }
+
+        .wishlist-results {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .wishlist-results h3 {
+            margin-bottom: 1.5rem;
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+        }
+
+        .wishlist-result {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .wishlist-result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .wishlist-result.failure {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .wishlist-result .icon {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+
         .loading {
             text-align: center;
             padding: 2rem;
@@ -450,6 +547,18 @@
             <p style="color: #666; font-size: 0.9rem;">
                 Enter any word or phrase to see the optimal dice configuration. Each die shows one letter when placed on a table.
             </p>
+            
+            <div class="wishlist-section">
+                <h3 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: #2c3e50; font-size: 1.1rem;">
+                    Wishlist Words <span style="color: #666; font-size: 0.8rem;">(optional - dice will try to accommodate these)</span>
+                </h3>
+                <div id="wishlistContainer">
+                    <div class="wishlist-item">
+                        <input type="text" class="wishlist-input" placeholder="Optional word to accommodate">
+                        <button class="add-wishlist-btn" onclick="addWishlistField()" title="Add another wishlist word">+</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="loading" id="loading">
@@ -466,6 +575,11 @@
 
             <div class="dice-container" id="diceContainer"></div>
 
+            <div class="wishlist-results" id="wishlistResults" style="display: none;">
+                <h3>Wishlist Words</h3>
+                <div id="wishlistResultsContent"></div>
+            </div>
+
             <div class="related-words">
                 <h3>Other Words You Can Spell</h3>
                 <div class="word-list" id="relatedWords"></div>
@@ -478,6 +592,59 @@
     </main>
 
     <script src="dice-generator.js"></script>
+    <script>
+        let wishlistCount = 1;
+        const MAX_WISHLIST = 5;
+
+        function addWishlistField() {
+            if (wishlistCount >= MAX_WISHLIST) {
+                alert('Maximum of 5 wishlist words allowed');
+                return;
+            }
+            
+            wishlistCount++;
+            const container = document.getElementById('wishlistContainer');
+            const newItem = document.createElement('div');
+            newItem.className = 'wishlist-item';
+            newItem.innerHTML = `
+                <input type="text" class="wishlist-input" placeholder="Optional word to accommodate">
+                <button class="remove-wishlist-btn" onclick="removeWishlistField(this)" title="Remove this wishlist word">×</button>
+            `;
+            container.appendChild(newItem);
+            
+            // Update the add button visibility
+            updateAddButton();
+        }
+
+        function removeWishlistField(button) {
+            button.parentElement.remove();
+            wishlistCount--;
+            updateAddButton();
+        }
+
+        function updateAddButton() {
+            const addButtons = document.querySelectorAll('.add-wishlist-btn');
+            addButtons.forEach(btn => {
+                if (wishlistCount >= MAX_WISHLIST) {
+                    btn.style.display = 'none';
+                } else {
+                    btn.style.display = 'flex';
+                }
+            });
+        }
+
+        function getWishlistWords() {
+            const inputs = document.querySelectorAll('.wishlist-input');
+            const words = [];
+            inputs.forEach(input => {
+                const word = input.value.trim();
+                if (word) {
+                    words.push(word);
+                }
+            });
+            return words;
+        }
+    </script>
     <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="75d9df11-7bf2-4858-aff9-5d6eca18b85c";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
 </body>
 </html>
