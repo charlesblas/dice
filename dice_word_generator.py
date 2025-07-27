@@ -13,6 +13,29 @@ LETTER_FREQUENCIES = {
     'Z': 0.07
 }
 
+# Biblical words for finding related spellings
+BIBLICAL_WORDS = [
+    # 2-3 letter biblical words
+    'god', 'sin', 'ark', 'eve', 'job', 'lot',
+    # 4 letter biblical words
+    'adam', 'abel', 'cain', 'noah', 'abba', 'amen', 'holy', 'lamb', 'lord', 'mary', 'paul', 'ruth', 'soul', 'zion',
+    # 5 letter biblical words
+    'aaron', 'angel', 'bible', 'bless', 'bread', 'cross', 'david', 'devil', 'earth', 'egypt', 'elias', 'faith', 'flesh', 
+    'glory', 'grace', 'heart', 'isaac', 'jacob', 'james', 'jesus', 'jonah', 'judah', 'light', 'mercy', 'moses', 'peace', 
+    'peter', 'psalm', 'satan', 'simon', 'truth', 'water',
+    # 6 letter biblical words
+    'bethel', 'canaan', 'christ', 'church', 'daniel', 'elijah', 'esther', 'exodus', 'father', 'gospel', 'heaven', 'hebrew', 
+    'israel', 'joseph', 'joshua', 'judean', 'master', 'prayer', 'priest', 'rachel', 'rebuke', 'romans', 'samuel', 'savior', 
+    'spirit', 'temple', 'thomas', 'throne', 'virgin', 'wisdom',
+    # 7+ letter biblical words
+    'abraham', 'apostle', 'baptism', 'believe', 'bethany', 'blessed', 'brother', 'calvary', 'commandment', 'covenant', 
+    'creator', 'crucify', 'delilah', 'deliver', 'disciple', 'eternal', 'forgive', 'galilee', 'gentile', 'goliath', 
+    'harvest', 'healing', 'holiness', 'jeremiah', 'jerusalem', 'kingdom', 'lazarus', 'levites', 'messiah', 'miracle', 
+    'nazareth', 'paradise', 'passover', 'pentecost', 'pharaoh', 'pharisee', 'philistine', 'prophet', 'proverbs', 
+    'redeemer', 'resurrect', 'righteous', 'sabbath', 'sacrifice', 'salvation', 'samarian', 'sanctify', 'scripture', 
+    'shepherd', 'solomon', 'synagogue', 'tabernacle', 'temptation', 'testament', 'timothy', 'trinity', 'vineyard', 'worship'
+]
+
 # Common English words for finding related spellings
 COMMON_WORDS = [
     'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had',
@@ -166,6 +189,14 @@ class DiceConfiguration:
                 related.append(word)
         return sorted(related, key=len, reverse=True)[:20]  # Return top 20 longest words
     
+    def find_biblical_words(self):
+        """Find biblical words that can be spelled with these dice"""
+        biblical = []
+        for word in BIBLICAL_WORDS:
+            if word.upper() != self.target_word and self.can_spell_word(word):
+                biblical.append(word)
+        return sorted(biblical, key=len, reverse=True)[:15]  # Return top 15 longest biblical words
+    
     def display_configuration(self):
         """Display the dice configuration"""
         print(f"\nOptimal dice configuration for spelling '{self.target_word}':")
@@ -197,6 +228,12 @@ class DiceConfiguration:
         if related:
             print(f"\nOther words you can spell with these dice:")
             print(", ".join(related))
+        
+        # Show biblical words
+        biblical = self.find_biblical_words()
+        if biblical:
+            print(f"\nBiblical words you can spell with these dice:")
+            print(", ".join(biblical))
 
 
 def main():

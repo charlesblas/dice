@@ -8,6 +8,20 @@ const LETTER_FREQUENCIES = {
     'Z': 0.07
 };
 
+// Biblical words for finding related spellings
+const BIBLICAL_WORDS = [
+    // 2-3 letter biblical words
+    'god', 'sin', 'ark', 'eve', 'job', 'lot',
+    // 4 letter biblical words
+    'adam', 'abel', 'cain', 'noah', 'abba', 'amen', 'holy', 'lamb', 'lord', 'mary', 'paul', 'ruth', 'soul', 'zion',
+    // 5 letter biblical words
+    'aaron', 'angel', 'bible', 'bless', 'bread', 'cross', 'david', 'devil', 'earth', 'egypt', 'elias', 'faith', 'flesh', 'glory', 'grace', 'heart', 'isaac', 'jacob', 'james', 'jesus', 'jonah', 'judah', 'light', 'mercy', 'moses', 'peace', 'peter', 'psalm', 'satan', 'simon', 'truth', 'water',
+    // 6 letter biblical words
+    'bethel', 'canaan', 'christ', 'church', 'daniel', 'elijah', 'esther', 'exodus', 'father', 'gospel', 'heaven', 'hebrew', 'israel', 'joseph', 'joshua', 'judean', 'master', 'prayer', 'priest', 'rachel', 'rebuke', 'romans', 'samuel', 'savior', 'spirit', 'temple', 'thomas', 'throne', 'virgin', 'wisdom',
+    // 7+ letter biblical words
+    'abraham', 'apostle', 'baptism', 'believe', 'bethany', 'blessed', 'brother', 'calvary', 'commandment', 'covenant', 'creator', 'crucify', 'delilah', 'deliver', 'disciple', 'eternal', 'forgive', 'galilee', 'gentile', 'goliath', 'harvest', 'healing', 'holiness', 'jeremiah', 'jerusalem', 'kingdom', 'lazarus', 'levites', 'messiah', 'miracle', 'nazareth', 'paradise', 'passover', 'pentecost', 'pharaoh', 'pharisee', 'philistine', 'prophet', 'proverbs', 'redeemer', 'resurrect', 'righteous', 'sabbath', 'sacrifice', 'salvation', 'samarian', 'sanctify', 'scripture', 'shepherd', 'solomon', 'synagogue', 'tabernacle', 'temptation', 'testament', 'timothy', 'trinity', 'vineyard', 'worship'
+];
+
 // Common English words for finding related spellings (expanded list)
 const COMMON_WORDS = [
     // 2-letter words
@@ -289,6 +303,17 @@ class DiceConfiguration {
         // Return more words, sorted by length
         return related.sort((a, b) => b.length - a.length).slice(0, 50);
     }
+
+    findBiblicalWords() {
+        const biblical = [];
+        for (const word of BIBLICAL_WORDS) {
+            if (word.toUpperCase() !== this.targetWord && this.canSpellWord(word)) {
+                biblical.push(word);
+            }
+        }
+        // Return biblical words sorted by length
+        return biblical.sort((a, b) => b.length - a.length).slice(0, 30);
+    }
 }
 
 function generateDice() {
@@ -420,6 +445,55 @@ function generateDice() {
             `;
         } else {
             relatedWordsDiv.innerHTML = '<p style="color: #666;">No related words found</p>';
+        }
+        
+        // Find and display biblical words
+        const biblicalWords = config.findBiblicalWords();
+        const biblicalWordsDiv = document.getElementById('biblicalWords');
+        
+        if (biblicalWordsDiv) {
+            biblicalWordsDiv.innerHTML = '';
+            
+            if (biblicalWords.length > 0) {
+                // Add section title
+                biblicalWordsDiv.innerHTML = '<h3>Biblical words you can spell</h3>';
+                
+                // Create word list container
+                biblicalWordsDiv.innerHTML += '<div class="word-list">';
+                const wordListDiv = biblicalWordsDiv.querySelector('.word-list');
+                
+                // Group words by length
+                const wordsByLength = {};
+                biblicalWords.forEach(word => {
+                    const len = word.length;
+                    if (!wordsByLength[len]) wordsByLength[len] = [];
+                    wordsByLength[len].push(word);
+                });
+                
+                // Display words grouped by length
+                Object.keys(wordsByLength).sort((a, b) => b - a).forEach(length => {
+                    if (wordsByLength[length].length > 0) {
+                        const wordsHtml = wordsByLength[length].map(word => 
+                            `<span class="word-tag biblical">${word}</span>`
+                        ).join('');
+                        wordListDiv.innerHTML += wordsHtml;
+                    }
+                });
+                
+                // Close word list and add statistics
+                biblicalWordsDiv.innerHTML += '</div>';
+                
+                // Add statistics
+                const totalWords = biblicalWords.length;
+                const avgLength = (biblicalWords.reduce((sum, word) => sum + word.length, 0) / totalWords).toFixed(1);
+                biblicalWordsDiv.innerHTML += `
+                    <div class="word-stats">
+                        <strong>${totalWords}</strong> biblical words • 
+                        Average length: <strong>${avgLength}</strong> letters • 
+                        Longest: <strong>${biblicalWords[0]}</strong> (${biblicalWords[0].length} letters)
+                    </div>
+                `;
+            }
         }
         
         // Hide loading and show results
